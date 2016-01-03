@@ -5,7 +5,7 @@ namespace frontend\models;
 use Yii;
 
 /**
- * This is the model class for table "{{%meeting}}".
+ * This is the model class for table "meeting".
  *
  * @property integer $id
  * @property integer $owner_id
@@ -29,7 +29,7 @@ class Meeting extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%meeting}}';
+        return 'meeting';
     }
 
     /**
@@ -50,7 +50,6 @@ class Meeting extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            
             'id' => 'ID',
             'owner_id' => 'Owner ID',
             'meeting_type' => 'Meeting Type',

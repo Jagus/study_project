@@ -1,40 +1,42 @@
 <?php
-
-use yii\helpers\Html;
-use yii\grid\GridView;
-
 /* @var $this yii\web\View */
 /* @var $searchModel frontend\models\MeetingSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = 'Meetings';
+$this->title = Yii::t('frontend', 'Meetings');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="meeting-index">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+<h1><?= $this->title ?></h1>
 
-    <p>
-        <?= Html::a('Create Meeting', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" role="tablist">
+  <li class="active"><a href="#upcoming" role="tab" data-toggle="tab">Upcoming</a></li>
+  <li><a href="#past" role="tab" data-toggle="tab">Past</a></li>
+  <li><a href="#canceled" role="tab" data-toggle="tab">Canceled</a></li>
+</ul>
 
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
+<!-- Tab panes -->
+<div class="tab-content">
+  <div class="tab-pane active" id="upcoming">
+    <div class="meeting-index">
+      
+      <?= $this->render('_grid', [
+          'dataProvider' => $upcomingProvider,
+      ]) ?>
 
-            'id',
-            'owner_id',
-            'meeting_type',
-            'message:ntext',
-            'status',
-            // 'created_at',
-            // 'updated_at',
+      </div> <!-- end of upcoming meetings tab -->
+  </div>
+  <div class="tab-pane" id="past">
 
-            ['class' => 'yii\grid\ActionColumn'],
-        ],
-    ]); ?>
-
+    <?= $this->render('_grid', [
+        'dataProvider' => $pastProvider,
+    ]) ?>    
+  </div> <!-- end of past meetings tab -->
+  <div class="tab-pane" id="canceled">
+    <?= $this->render('_grid', [
+        'dataProvider' => $canceledProvider,
+    ]) ?>
+    
+  </div> <!-- end of canceled meetings tab -->
+  
 </div>

@@ -8,6 +8,9 @@ use frontend\models\PlaceSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\User;
+use dosamigos\google\maps\services\GeocodingClient;
+use yii\data\ActiveDataProvider;
 
 /**
  * PlaceController implements the CRUD actions for Place model.
@@ -41,15 +44,34 @@ class PlaceController extends Controller
         ]);
     }
 
+    public function actionYours() 
+    {
+      $query = Place::find()->joinWith('userPlaces')->where(['user_id' => Yii::$app->user->getId()]);
+      $searchModel = new PlaceSearch();
+      
+         $dataProvider = new ActiveDataProvider([
+             'query' => $query,
+             'pagination' => ['pageSize' => 10],
+         ]);
+         return $this->render('yours',[
+            'dataProvider' => $dataProvider,
+            'searchModel'=>$searchModel,
+         ]);
+    }
+
+
     /**
      * Displays a single Place model.
      * @param integer $id
      * @return mixed
      */
     public function actionView($id)
-    {
+    { 
+        $model = $this->findModel($id);
+        $gps = $model->getLocation($id);
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
+            'gps'=> $gps,
         ]);
     }
 
@@ -60,9 +82,24 @@ class PlaceController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Place();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        $model = new Place();       
+        if ($model->load(Yii::$app->request->post())) {
+			$form = Yii::$app->request->post();
+            if (Yii::$app->user->getIsGuest()) {
+              $model->created_by = 1;
+            } else {
+              $model->created_by= Yii::$app->user->getId();
+            }
+            $model->save();
+            $gc = new GeocodingClient();
+            $result = $gc->lookup(array('address'=>$form['Place']['full_address'],'components'=>1));
+			$location = $result['results'][0]['geometry']['location'];
+            if (!is_null($location)) {
+				$lat = $location['lat'];
+				$lng = $location['lng'];
+             // add GPS entry in PlaceGeometry
+             $model->addGeometryByPoint($model,$lat,$lng);
+			}            
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
             return $this->render('create', [
@@ -118,4 +155,66 @@ class PlaceController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
+    
+    /**
+      * Creates a new Place model from Google Place
+      * If creation is successful, the browser will be redirected to the 'view' page.
+      * @return mixed
+      */
+     public function actionCreate_place_google()
+     {
+       $model = new Place();        
+       if ($model->load(Yii::$app->request->post())) {
+           if (Yii::$app->user->getIsGuest()) {
+             $model->created_by = 1;
+           } else {
+             $model->created_by= Yii::$app->user->getId();
+           }
+           $form = Yii::$app->request->post();
+           $model->save();
+           // add GPS entry in PlaceGeometry
+           $model->addGeometry($model,$form['Place']['location']);
+           return $this->redirect(['view', 'id' => $model->id]);
+       } else {
+           return $this->render('create_place_google', [
+               'model' => $model,
+           ]);
+       }
+     }    
+
+     /**
+      * Creates a new Place model via Geolocation
+      */
+     public function actionCreate_geo()
+     {
+         $model = new Place();
+         if ($model->load(Yii::$app->request->post())) {
+             if (Yii::$app->user->getIsGuest()) {
+               $model->created_by = 1;
+             } else {
+               $model->created_by= Yii::$app->user->getId();
+             }
+             $form = Yii::$app->request->post();
+             $model->save();
+             // add GPS entry in PlaceGeometry
+             $model->addGeometryByPoint($model,$form['Place']['lat'],$form['Place']['lng']);
+             return $this->redirect(['view', 'id' => $model->id]);
+         } else {
+             return $this->render('create_geo', [
+                 'model' => $model,
+             ]);
+         }
+     }  
+
+     public function actionLocate()
+     {
+         $searchModel = new PostPlace();
+         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+         return $this->render('locate', [
+             'searchModel' => $searchModel,
+             'dataProvider' => $dataProvider,
+         ]);
+     }
+    
 }

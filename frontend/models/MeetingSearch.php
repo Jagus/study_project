@@ -5,10 +5,10 @@ namespace frontend\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use frontend\models\Meeting;
+use common\models\Meeting;
 
 /**
- * MeetingSearch represents the model behind the search form about `frontend\models\Meeting`.
+ * MeetingSearch represents the model behind the search form about `common\models\Meeting`.
  */
 class MeetingSearch extends Meeting
 {
@@ -47,11 +47,7 @@ class MeetingSearch extends Meeting
             'query' => $query,
         ]);
 
-        $this->load($params);
-
-        if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
+        if (!($this->load($params) && $this->validate())) {
             return $dataProvider;
         }
 

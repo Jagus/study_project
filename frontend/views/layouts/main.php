@@ -27,34 +27,49 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
-    NavBar::begin([
-        'brandLabel' => 'My Company',
-        'brandUrl' => Yii::$app->homeUrl,
-        'options' => [
-            'class' => 'navbar-inverse navbar-fixed-top',
-        ],
-    ]);
-    $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
-        ['label' => 'About', 'url' => ['/site/about']],
-        ['label' => 'Contact', 'url' => ['/site/contact']],
-    ];
-    if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
-    } else {
-        $menuItems[] = [
-            'label' => 'Logout (' . Yii::$app->user->identity->username . ')',
-            'url' => ['/site/logout'],
-            'linkOptions' => ['data-method' => 'post']
-        ];
-    }
-    echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
-        'items' => $menuItems,
-    ]);
-    NavBar::end();
-    ?>
+   NavBar::begin([
+    'brandLabel' => Yii::t('frontend','MeetingPlanner.io'), //
+    'brandUrl' => Yii::$app->homeUrl,
+    'options' => [
+        'class' => 'navbar-inverse navbar-fixed-top',
+    ],
+]);
+if (Yii::$app->user->isGuest) {
+    $menuItems[] = ['label' => Yii::t('frontend','Signup'), 'url' => ['/site/signup']];
+    $menuItems[] = ['label' => Yii::t('frontend','Login'), 'url' => ['/site/login']];
+} else {    
+  $menuItems = [
+      ['label' => Yii::t('frontend','Places'), 'url' => ['/place/yours']],              
+  ];    
+}
+$menuItems[]=['label' => Yii::t('frontend','About'),
+    'items' => [
+        ['label' => Yii::t('frontend','Learn more'), 'url' => ['/site/about']],
+        ['label' => Yii::t('frontend','Contact'), 'url' => ['/site/contact']],
+    ],
+];    
+if (!Yii::$app->user->isGuest) {
+    $menuItems[] = [
+                'label' => 'Account',
+                'items' => [
+                     [
+                        'label' => Yii::t('frontend','Contact information'),
+                        'url' => ['/user-contact'],
+                    ],
+                     [
+                        'label' => Yii::t('frontend','Logout').' (' . Yii::$app->user->identity->username . ')',
+                        'url' => ['/site/logout'],
+                        'linkOptions' => ['data-method' => 'post']
+                    ],
+                ],
+            ];              
+}                       
+echo Nav::widget([
+    'options' => ['class' => 'navbar-nav navbar-right'],
+    'items' => $menuItems,
+]);
+NavBar::end();
+?>
 
     <div class="container">
         <?= Breadcrumbs::widget([
@@ -67,7 +82,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
+        <p class="pull-left">&copy; SiekiTeam <?= date('Y') ?></p>
 
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>

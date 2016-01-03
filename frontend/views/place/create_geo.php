@@ -6,9 +6,7 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model frontend\models\Place */
 
-$this->title = Yii::t('frontend', 'Create {modelClass}', [
-    'modelClass' => 'Place',
-]);
+$this->title = 'Create Place By Geolocation';
 $this->params['breadcrumbs'][] = ['label' => Yii::t('frontend', 'Your Places'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -16,7 +14,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
+    <?= $this->render('_formGeolocate', [
         'model' => $model,
     ]) ?>
 

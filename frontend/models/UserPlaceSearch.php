@@ -1,16 +1,13 @@
 <?php
-
 namespace frontend\models;
-
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use frontend\models\Place;
-
+use frontend\models\UserPlace;
 /**
- * PlaceSearch represents the model behind the search form about `frontend\models\Place`.
+ * UserPlaceSearch represents the model behind the search form about `frontend\models\UserPlace`.
  */
-class PlaceSearch extends Place
+class UserPlaceSearch extends UserPlace
 {
     /**
      * @inheritdoc
@@ -18,11 +15,10 @@ class PlaceSearch extends Place
     public function rules()
     {
         return [
-            [['id', 'place_type', 'status', 'created_by', 'created_at', 'updated_at'], 'integer'],
-            [['name', 'google_place_id', 'slug', 'website', 'full_address', 'vicinity'], 'safe'],
+            [['id', 'user_id', 'place_id', 'is_favorite', 'number_meetings', 'is_special', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['note'], 'safe'],
         ];
     }
-
     /**
      * @inheritdoc
      */
@@ -31,7 +27,6 @@ class PlaceSearch extends Place
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
-
     /**
      * Creates data provider instance with search query applied
      *
@@ -41,32 +36,28 @@ class PlaceSearch extends Place
      */
     public function search($params)
     {
-        $query = Place::find();
-
+        $query = UserPlace::find();
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
-
-        if (!($this->load($params) && $this->validate())) {
+        $this->load($params);
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to any records when validation fails
+            // $query->where('0=1');
             return $dataProvider;
         }
-
         $query->andFilterWhere([
             'id' => $this->id,
-            'place_type' => $this->place_type,
+            'user_id' => $this->user_id,
+            'place_id' => $this->place_id,
+            'is_favorite' => $this->is_favorite,
+            'number_meetings' => $this->number_meetings,
+            'is_special' => $this->is_special,
             'status' => $this->status,
-            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
-
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'google_place_id', $this->google_place_id])
-            ->andFilterWhere(['like', 'slug', $this->slug])
-            ->andFilterWhere(['like', 'website', $this->website])
-            ->andFilterWhere(['like', 'full_address', $this->full_address])
-            ->andFilterWhere(['like', 'vicinity', $this->vicinity]);
-
+        $query->andFilterWhere(['like', 'note', $this->note]);
         return $dataProvider;
     }
 }
