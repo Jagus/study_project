@@ -66,8 +66,9 @@ If you do not have Composer, you may install it by following the instructions at
 
 You can then install the application using the following command:
 
-php composer.phar global require "fxp/composer-asset-plugin:~1.0.0"
-php composer.phar create-project --prefer-dist yiisoft/yii2-app-advanced advanced
+    php composer.phar global require "fxp/composer-asset-plugin:~1.0.0"
+    php composer.phar create-project --prefer-dist yiisoft/yii2-app-advanced advanced
+    
 Install from an Archive File
 
 Download the archive file directly to a directory named practical that is directly under the Web root.
