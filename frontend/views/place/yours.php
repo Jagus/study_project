@@ -39,7 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             return '<div>'.$model->getPlaceType($model->place_type).'</div>';
                     },
             ],
-            ['class' => 'yii\grid\ActionColumn',
+            ['class' => 'yii\grid\ActionColumn','header'=>'Options',
 				      'template'=>'{view} {update} ',
 					    'buttons'=>[
                 'view' => function ($url, $model) {     

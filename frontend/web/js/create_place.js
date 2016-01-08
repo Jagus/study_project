@@ -35,6 +35,7 @@ function populateResult(place) {
 }
 
 function loadMap(gps,name) {
+  if (document.querySelector('article').children.length==0) {9
   var mapcanvas = document.createElement('div');
   mapcanvas.id = 'mapcanvas';
   mapcanvas.style.height = '300px';
@@ -58,4 +59,5 @@ function loadMap(gps,name) {
       map: map, 
       title:name
   });  
+}
 }

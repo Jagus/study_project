@@ -5,10 +5,12 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model frontend\models\Meeting */
 
-$this->title = 'Update Meeting: ' . ' ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Meetings', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('frontend', 'Update {modelClass}: ', [
+    'modelClass' => 'Meeting',
+]) . ' ' . $model->title;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('frontend', 'Meetings'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->title, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('frontend', 'Update');
 ?>
 <div class="meeting-update">
 

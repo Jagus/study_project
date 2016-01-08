@@ -1,7 +1,9 @@
 <?php
+
 /* @var $this yii\web\View */
 /* @var $searchModel frontend\models\MeetingSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+
 $this->title = Yii::t('frontend', 'Meetings');
 $this->params['breadcrumbs'][] = $this->title;
 ?>

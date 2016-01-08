@@ -5,6 +5,7 @@ namespace frontend\models;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Expression;
+
 /**
  * This is the model class for table "user_place".
  *
@@ -38,12 +39,24 @@ class UserPlace extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'place_id', 'note', 'created_at', 'updated_at'], 'required'],
+            [['user_id', 'place_id'], 'required'],
             [['user_id', 'place_id', 'is_favorite', 'number_meetings', 'is_special', 'status', 'created_at', 'updated_at'], 'integer'],
             [['note'], 'string', 'max' => 255]
         ];
     }
 
+     public function behaviors()
+      {
+          return [
+              'timestamp' => [
+                  'class' => 'yii\behaviors\TimestampBehavior',
+                  'attributes' => [
+                      ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
+                      ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
+                  ],
+              ],
+          ];
+      }
     /**
      * @inheritdoc
      */
@@ -78,7 +91,7 @@ class UserPlace extends \yii\db\ActiveRecord
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
     }
-
+    
     // add place to user place list
     public function add($user_id,$place_id) {
         // check if it exists

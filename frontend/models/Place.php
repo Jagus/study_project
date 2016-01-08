@@ -5,7 +5,7 @@ namespace frontend\models;
 use Yii;
 use yii\behaviors\SluggableBehavior;
 use yii\db\ActiveRecord;
-use yii\db\Expression;
+use dosamigos\google\maps\services\GeocodingClient;
 
 /**
  * This is the model class for table "{{%place}}".
@@ -51,13 +51,32 @@ class Place extends \yii\db\ActiveRecord
         return '{{%place}}';
     }
     
+    /**
+     * @inheritdoc
+     * @return PlaceQuery
+     */
+    public static function find()
+    {
+        return new PlaceQuery(get_called_class());
+    }
+    
+    public function afterSave($insert,$changedAttributes)
+    {
+        parent::afterSave($insert,$changedAttributes);
+        if ($insert) {
+          $up = new UserPlace;
+          $up->add($this->created_by,$this->id);
+        } 
+    }
+     
     public function behaviors()
     {
         return [
             [
                 'class' => SluggableBehavior::className(),
                 'attribute' => 'name',
-                // 'slugAttribute' => 'slug',
+                'immutable' => true,
+                'ensureUnique'=>true,
             ],
             'timestamp' => [
                 'class' => 'yii\behaviors\TimestampBehavior',
@@ -65,7 +84,6 @@ class Place extends \yii\db\ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
                 ],
-                'value' => new Expression('NOW()'),
             ],
         ];
     }    
@@ -78,9 +96,11 @@ class Place extends \yii\db\ActiveRecord
          return [
              [['name','slug'], 'required'],
              [['place_type', 'status', 'created_by', 'created_at', 'updated_at'], 'integer'],
-             [['google_place_id','slug'], 'unique'],
              [['name', 'google_place_id', 'slug', 'website', 'full_address', 'vicinity'], 'string', 'max' => 255],
-              [['website'], 'url'],
+             [['website'], 'url'],
+             [['slug'], 'unique'],
+             [['searchbox'], 'unique','targetAttribute' => 'google_place_id'],             
+             [['name', 'full_address'], 'unique', 'targetAttribute' => ['name', 'full_address']],
          ];
      }
     
@@ -90,20 +110,47 @@ class Place extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'place_type' => 'Place Type',
-            'status' => 'Status',
-            'google_place_id' => 'Google Place ID',
-            'created_by' => 'Created By',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-            'slug' => 'Slug',
-            'website' => 'Website',
-            'full_address' => 'Full Address',
-            'vicinity' => 'Vicinity',
-            'notes'=> 'Notes',
+          'id' => Yii::t('frontend', 'ID'),
+           'name' => Yii::t('frontend', 'Name'),
+           'place_type' => Yii::t('frontend', 'Place Type'),
+           'status' => Yii::t('frontend', 'Status'),
+           'google_place_id' => Yii::t('frontend', 'Google Place ID'),
+           'created_by' => Yii::t('frontend', 'Created By'),
+           'created_at' => Yii::t('frontend', 'Created At'),
+           'updated_at' => Yii::t('frontend', 'Updated At'),
+           'slug' => Yii::t('frontend', 'Slug'),
+           'website' => Yii::t('frontend', 'Website'),
+           'full_address' => Yii::t('frontend', 'Full Address'),
+           'vicinity' => Yii::t('frontend', 'Vicinity'),
+           'notes' => Yii::t('frontend', 'Notes'),
         ];
+    }
+    
+    public static function googlePlaceSuggested($form) {
+      // check if this google place already exists
+      if (Place::find()->where(['google_place_id'=>$form['google_place_id']])->exists()) {
+        $model = Place::find()->where(['google_place_id'=>$form['google_place_id']])->one();
+        return $model->id;
+      } else {
+        // otherwise register a new place
+        $model = new Place();
+        $model->name =$form['name'];
+        $model->place_type =self::TYPE_OTHER;
+        $model->google_place_id = $form['google_place_id'];
+        $model->website = $form['website'];
+        $model->vicinity = $form['vicinity'];
+        $model->full_address = $form['full_address'];
+        $model->created_by = Yii::$app->user->getId();
+        if ($model->validate()) {
+             // all inputs are valid
+             $model->save();
+             // add GPS entry in PlaceGeometry
+             $model->addGeometry($model,$form['location']);
+             return $model->id;
+        } else {
+          return false;
+        } 
+      }        
     }
 
     /**
@@ -154,6 +201,20 @@ class Place extends \yii\db\ActiveRecord
             self::TYPE_OTHER => 'Other'
          );
      }		
+
+     public function addLocationFromAddress($model,$full_address='') {
+       // finds gps coordinates from full_address field if available
+       if ($full_address=='') return false;
+       $gc = new GeocodingClient();
+       $result = $gc->lookup(array('address'=>$full_address,'components'=>1));
+ 			 $location = $result['results'][0]['geometry']['location'];
+        if (!is_null($location)) {
+   				$lat = $location['lat'];
+   				$lng = $location['lng'];
+          // add GPS entry in PlaceGeometry
+          $this->addGeometryByPoint($model,$lat,$lng);       
+        }
+      }
 
      public function addGeometryByPoint($model,$lat,$lon) {
          $pg = new PlaceGPS;
@@ -239,5 +300,5 @@ class Place extends \yii\db\ActiveRecord
         $string = str_replace(')', '', $string); // remove trailing bracket
         return explode(' ', $string);
     }
-    
+  
 }
